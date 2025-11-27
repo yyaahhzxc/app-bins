@@ -23,7 +23,12 @@ class VinceApp extends StatelessWidget {
           return MaterialApp(
             title: "Vince's App",
             debugShowCheckedModeBanner: false,
-            theme: _buildTheme(appState.isDarkMode),
+            // Mode Logic: 0=Light, 1=System, 2=Dark
+            themeMode: appState.themeMode == 1 
+                ? ThemeMode.system 
+                : (appState.themeMode == 2 ? ThemeMode.dark : ThemeMode.light),
+            theme: _buildLightTheme(),
+            darkTheme: _buildDarkTheme(),
             home: const MainScaffold(),
           );
         },
@@ -31,141 +36,60 @@ class VinceApp extends StatelessWidget {
     );
   }
 
-  ThemeData _buildTheme(bool isDarkMode) {
-    if (isDarkMode) {
-      return ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        primaryColor: kPrimaryColor,
-        scaffoldBackgroundColor: const Color(0xFF121212),
-        colorScheme: const ColorScheme.dark(
-          primary: kPrimaryColor,
-          secondary: kSurfaceColor,
-          surface: Color(0xFF1E1E1E),
-          error: kErrorColor,
-        ),
-        textTheme: GoogleFonts.poppinsTextTheme(ThemeData.dark().textTheme),
-        cardTheme: CardThemeData(
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(kBorderRadius),
-          ),
-          color: const Color(0xFF1E1E1E),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: const Color(0xFF1E1E1E),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(kBorderRadius),
-            borderSide: BorderSide.none,
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(kBorderRadius),
-            borderSide: BorderSide.none,
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(kBorderRadius),
-            borderSide: const BorderSide(color: kPrimaryColor, width: 2),
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: kPaddingMedium,
-            vertical: kPaddingMedium,
-          ),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: kPrimaryColor,
-            foregroundColor: kTextOnPrimary,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(kBorderRadius),
-            ),
-            padding: const EdgeInsets.symmetric(
-              horizontal: kPaddingLarge,
-              vertical: kPaddingMedium,
-            ),
-          ),
-        ),
-        outlinedButtonTheme: OutlinedButtonThemeData(
-          style: OutlinedButton.styleFrom(
-            foregroundColor: kPrimaryColor,
-            side: const BorderSide(color: kPrimaryColor),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(kBorderRadius),
-            ),
-            padding: const EdgeInsets.symmetric(
-              horizontal: kPaddingLarge,
-              vertical: kPaddingMedium,
-            ),
-          ),
-        ),
-      );
-    }
-
-    // Light Theme (Default)
-    return ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.light,
+  ThemeData _buildLightTheme() {
+    final base = ThemeData.light();
+    return base.copyWith(
       primaryColor: kPrimaryColor,
       scaffoldBackgroundColor: kBackgroundColor,
       colorScheme: const ColorScheme.light(
         primary: kPrimaryColor,
-        secondary: kSurfaceColor,
+        secondary: kUnpaidContainerColor,
         surface: kSurfaceColor,
         error: kErrorColor,
+        onSurface: kTextPrimary,
       ),
-      textTheme: GoogleFonts.poppinsTextTheme(ThemeData.light().textTheme),
+      textTheme: GoogleFonts.poppinsTextTheme(base.textTheme),
+      // CHANGED: CardTheme -> CardThemeData (based on your error logs)
       cardTheme: CardThemeData(
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(kBorderRadius),
-        ),
         color: kSurfaceColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(kBorderRadius)),
       ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(kBorderRadius),
-          borderSide: BorderSide.none,
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(kBorderRadius),
-          borderSide: BorderSide.none,
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(kBorderRadius),
-          borderSide: const BorderSide(color: kPrimaryColor, width: 2),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: kPaddingMedium,
-          vertical: kPaddingMedium,
-        ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: kPrimaryColor,
+        foregroundColor: kTextOnPrimary,
+        elevation: 0,
       ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: kPrimaryColor,
-          foregroundColor: kTextOnPrimary,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(kBorderRadius),
-          ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: kPaddingLarge,
-            vertical: kPaddingMedium,
-          ),
-        ),
+    );
+  }
+
+  ThemeData _buildDarkTheme() {
+    final base = ThemeData.dark();
+    return base.copyWith(
+      primaryColor: kPrimaryColorDark,
+      scaffoldBackgroundColor: kBackgroundColorDark,
+      colorScheme: const ColorScheme.dark(
+        primary: kPrimaryColorDark,
+        secondary: kUnpaidContainerColorDark,
+        surface: kSurfaceColorDark,
+        error: kErrorColor,
+        onSurface: kTextPrimaryDark,
       ),
-      outlinedButtonTheme: OutlinedButtonThemeData(
-        style: OutlinedButton.styleFrom(
-          foregroundColor: kPrimaryColor,
-          side: const BorderSide(color: kPrimaryColor),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(kBorderRadius),
-          ),
-          padding: const EdgeInsets.symmetric(
-            horizontal: kPaddingLarge,
-            vertical: kPaddingMedium,
-          ),
-        ),
+      textTheme: GoogleFonts.poppinsTextTheme(base.textTheme).apply(
+        bodyColor: kTextPrimaryDark,
+        displayColor: kTextPrimaryDark,
+      ),
+      // CHANGED: CardTheme -> CardThemeData (based on your error logs)
+      cardTheme: CardThemeData(
+        color: kSurfaceColorDark,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(kBorderRadius)),
+      ),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: kSurfaceColorDark,
+        foregroundColor: kTextPrimaryDark,
+        elevation: 0,
+      ),
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: kSurfaceColorDark,
       ),
     );
   }

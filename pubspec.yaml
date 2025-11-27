@@ -21,8 +21,8 @@ dependencies:
   intl: ^0.18.1
   
   # Data Import/Export
-  share_plus: ^7.2.1
-  file_picker: ^6.1.1
+  share_plus: ^10.0.0  # Updated to avoid similar Android V1 embedding errors
+  file_picker: ^10.0.0 # Updated to fix "cannot find symbol Registrar" error
   
   # UI Enhancement
   google_fonts: ^6.1.0

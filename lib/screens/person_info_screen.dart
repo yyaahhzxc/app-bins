@@ -4,447 +4,384 @@ import '../models/friend.dart';
 import '../providers/app_state.dart';
 import '../utils/constants.dart';
 import '../widgets/custom_text_field.dart';
-import '../widgets/pill_card.dart';
 
-class PersonInfoScreen extends StatefulWidget {
+class PersonInfoModal extends StatefulWidget {
   final Friend friend;
 
-  const PersonInfoScreen({super.key, required this.friend});
+  const PersonInfoModal({super.key, required this.friend});
 
   @override
-  State<PersonInfoScreen> createState() => _PersonInfoScreenState();
+  State<PersonInfoModal> createState() => _PersonInfoModalState();
 }
 
-class _PersonInfoScreenState extends State<PersonInfoScreen> {
-  String _selectedTab = 'Personal Info';
-  String _filterPeriod = 'Today';
+class _PersonInfoModalState extends State<PersonInfoModal> {
+  // State 0: Personal Info, 1: Payment Info
+  int _selectedTab = 0; 
+  bool _isEditing = false; // State for the Edit View (4th image)
+
+  // Edit Controllers
+  late TextEditingController _nameController;
+  late TextEditingController _notesController;
+  late bool _isActive;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.friend.name);
+    _notesController = TextEditingController(text: widget.friend.notes);
+    _isActive = widget.friend.isActive;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final appState = context.watch<AppState>();
+    // If editing, show the Edit View (Image 4)
+    if (_isEditing) {
+      return _buildEditView(context);
+    }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'Person Info',
+    // Otherwise show the Info View (Images 2 & 3)
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.85, // Tall modal
+      padding: const EdgeInsets.only(top: kPaddingMedium),
+      child: Column(
+        children: [
+          // Modal Handle
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
+          ),
+          const SizedBox(height: kPaddingMedium),
+
+          // Title
+          const Text(
+            'Person Info',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: kPrimaryColor,
+            ),
+          ),
+          const SizedBox(height: kPaddingLarge),
+
+          // Custom Tab Switcher
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: kPaddingLarge),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildTabButton('Personal Info', 0),
+                const SizedBox(width: kPaddingMedium),
+                _buildTabButton('Payment Info', 1),
+              ],
+            ),
+          ),
+          const SizedBox(height: kPaddingLarge),
+
+          // Content Area
+          Expanded(
+            child: _selectedTab == 0
+                ? _buildPersonalInfoTab()
+                : _buildPaymentInfoTab(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabButton(String label, int index) {
+    final isSelected = _selectedTab == index;
+    return GestureDetector(
+      onTap: () => setState(() => _selectedTab = index),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 24),
+        decoration: BoxDecoration(
+          color: isSelected ? kPrimaryColor : Colors.white,
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: kPrimaryColor),
+        ),
+        child: Text(
+          label,
           style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: kTextOnPrimary,
+            color: isSelected ? Colors.white : kPrimaryColor,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        backgroundColor: kPrimaryColor,
-        iconTheme: const IconThemeData(color: kTextOnPrimary),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.edit),
-            onPressed: () => _showEditPersonModal(context),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // Tab Switcher
-          Container(
-            padding: const EdgeInsets.all(kPaddingMedium),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _buildTabButton('Personal Info'),
-                ),
-                const SizedBox(width: kPaddingSmall),
-                Expanded(
-                  child: _buildTabButton('Payment Info'),
-                ),
-              ],
-            ),
-          ),
-
-          // Content
-          Expanded(
-            child: _selectedTab == 'Personal Info'
-                ? _buildPersonalInfo(appState)
-                : _buildPaymentInfo(appState),
-          ),
-        ],
       ),
     );
   }
 
-  Widget _buildTabButton(String title) {
-    final isSelected = _selectedTab == title;
-    return ElevatedButton(
-      onPressed: () {
-        setState(() {
-          _selectedTab = title;
-        });
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: isSelected ? kPrimaryColor : Colors.grey[300],
-        foregroundColor: isSelected ? kTextOnPrimary : kTextPrimary,
-      ),
-      child: Text(title),
-    );
-  }
-
-  Widget _buildPersonalInfo(AppState appState) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(kPaddingMedium),
+  // IMAGE 2: Personal Info View
+  Widget _buildPersonalInfoTab() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: kPaddingLarge),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PillCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Person Name',
-                  style: TextStyle(
-                    fontSize: kCaptionSize,
-                    fontWeight: FontWeight.w600,
-                    color: kTextSecondary,
-                  ),
-                ),
-                const SizedBox(height: kPaddingSmall / 2),
-                Text(
-                  widget.friend.name,
-                  style: const TextStyle(
-                    fontSize: kTitleSize,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
+          CustomTextField(
+            label: 'Person Name',
+            controller: TextEditingController(text: widget.friend.name),
+            readOnly: true,
+            showClearButton: false,
           ),
           const SizedBox(height: kPaddingMedium),
-          PillCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Notes',
-                  style: TextStyle(
-                    fontSize: kCaptionSize,
-                    fontWeight: FontWeight.w600,
-                    color: kTextSecondary,
-                  ),
-                ),
-                const SizedBox(height: kPaddingSmall / 2),
-                Text(
-                  widget.friend.notes.isEmpty ? 'No notes' : widget.friend.notes,
-                  style: const TextStyle(
-                    fontSize: kBodySize,
-                  ),
-                ),
-              ],
+          CustomTextField(
+            label: 'Notes',
+            controller: TextEditingController(text: widget.friend.notes),
+            readOnly: true,
+            showClearButton: false,
+          ),
+          const Spacer(),
+          
+          // Edit Button (Bottom Right)
+          Align(
+            alignment: Alignment.bottomRight,
+            child: ElevatedButton(
+              onPressed: () {
+                setState(() {
+                  _isEditing = true;
+                });
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: kPrimaryColor,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              ),
+              child: const Text('Edit', style: TextStyle(color: Colors.white)),
             ),
           ),
-          const SizedBox(height: kPaddingMedium),
-          PillCard(
-            child: Row(
-              children: [
-                const Text(
-                  'Show Person',
-                  style: TextStyle(
-                    fontSize: kBodySize,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const Spacer(),
-                Switch(
-                  value: widget.friend.isActive,
-                  onChanged: (value) async {
-                    final updatedFriend = widget.friend.copyWith(isActive: value);
-                    await appState.updateFriend(updatedFriend);
-                    setState(() {});
-                  },
-                  activeTrackColor: kPrimaryColor,
-                ),
-              ],
-            ),
-          ),
+          const SizedBox(height: kPaddingLarge),
         ],
       ),
     );
   }
 
-  Widget _buildPaymentInfo(AppState appState) {
-    final transactions = appState
-        .filterTransactionsByPeriod(_filterPeriod)
-        .where((t) => t.friendId == widget.friend.id)
-        .toList();
+  // IMAGE 3: Payment Info View
+  Widget _buildPaymentInfoTab(BuildContext context) {
+    final appState = context.watch<AppState>();
+    // Logic to filter transactions would go here, currently using all for demo
+    final transactions = appState.getTransactionsByFriend(widget.friend.id!);
 
     return Column(
       children: [
-        // Filter Chips
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: kPaddingMedium),
-          height: 50,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
+        const Text(
+          'Payment Summary',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: kPrimaryColor),
+        ),
+        Text(
+          'Last Paid: ${widget.friend.lastPaidDate != null ? appState.formatDate(widget.friend.lastPaidDate!) : "Never"}',
+          style: TextStyle(color: Colors.grey[600], fontSize: 12),
+        ),
+        const SizedBox(height: kPaddingMedium),
+
+        // Filter Chips (Visual only for now)
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: kPaddingLarge),
+          child: Row(
             children: [
-              _buildFilterChip('Today'),
-              const SizedBox(width: kPaddingSmall),
-              _buildFilterChip('This Week'),
-              const SizedBox(width: kPaddingSmall),
-              _buildFilterChip('This Month'),
-              const SizedBox(width: kPaddingSmall),
-              _buildFilterChip('All'),
+              _buildFilterChip('Today', true),
+              _buildFilterChip('This Week', false),
+              _buildFilterChip('This Month', false),
+              _buildFilterChip('All', false),
             ],
           ),
         ),
-
-        // Payment Summary Header
-        Container(
-          padding: const EdgeInsets.all(kPaddingMedium),
-          child: PillCard(
-            color: Colors.white,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Payment Summary',
-                  style: TextStyle(
-                    fontSize: kTitleSize,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: kPaddingSmall / 2),
-                Text(
-                  'Last Paid: ${widget.friend.lastPaidDate != null ? appState.formatDate(widget.friend.lastPaidDate!) : "Never"}',
-                  style: const TextStyle(
-                    fontSize: kCaptionSize,
-                    color: kTextSecondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
+        const SizedBox(height: kPaddingMedium),
 
         // Transactions List
         Expanded(
-          child: transactions.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.receipt_long_outlined,
-                        size: 64,
-                        color: Colors.grey[400],
-                      ),
-                      const SizedBox(height: kPaddingMedium),
-                      Text(
-                        'No payments found',
-                        style: TextStyle(
-                          fontSize: kTitleSize,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              : ListView.separated(
-                  padding: const EdgeInsets.all(kPaddingMedium),
-                  itemCount: transactions.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: kPaddingMedium),
-                  itemBuilder: (context, index) {
-                    final transaction = transactions[index];
-                    return PillCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                appState.formatCurrency(transaction.amount),
-                                style: const TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: kPrimaryColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: kPaddingSmall / 2),
-                          Text(
-                            appState.formatDateTime(transaction.date),
-                            style: const TextStyle(
-                              fontSize: kCaptionSize,
-                              color: kTextSecondary,
-                            ),
-                          ),
-                          const SizedBox(height: kPaddingSmall / 2),
-                          Text(
-                            'Claimed by: ${transaction.claimedBy}',
-                            style: const TextStyle(
-                              fontSize: kBodySize,
-                            ),
-                          ),
-                          if (transaction.notes.isNotEmpty) ...[
-                            const SizedBox(height: kPaddingSmall / 2),
-                            Text(
-                              transaction.notes,
-                              style: TextStyle(
-                                fontSize: kCaptionSize,
-                                color: Colors.grey[600],
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    );
-                  },
+          child: ListView.separated(
+            padding: const EdgeInsets.all(kPaddingLarge),
+            itemCount: transactions.length,
+            separatorBuilder: (context, index) => const SizedBox(height: kPaddingMedium),
+            itemBuilder: (context, index) {
+              final tx = transactions[index];
+              return Container(
+                padding: const EdgeInsets.all(kPaddingMedium),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4),
+                  ],
                 ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      appState.formatCurrency(tx.amount),
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF333333),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${appState.formatDate(tx.date)} • ${appState.formatTime(tx.date)}',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                    ),
+                    Text(
+                      'Claimed by: ${tx.claimedBy}',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildFilterChip(String label) {
-    final isSelected = _filterPeriod == label;
-    return ChoiceChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (selected) {
-        if (selected) {
-          setState(() {
-            _filterPeriod = label;
-          });
-        }
-      },
-      selectedColor: kPrimaryColor,
-      labelStyle: TextStyle(
-        color: isSelected ? kTextOnPrimary : kTextPrimary,
+  Widget _buildFilterChip(String label, bool isSelected) {
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: isSelected ? kPrimaryColor : Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isSelected ? kPrimaryColor : Colors.grey[300]!),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: isSelected ? Colors.white : Colors.grey[600],
+          fontSize: 12,
+        ),
       ),
     );
   }
 
-  void _showEditPersonModal(BuildContext context) {
-    final formKey = GlobalKey<FormState>();
-    final nameController = TextEditingController(text: widget.friend.name);
-    final notesController = TextEditingController(text: widget.friend.notes);
-    final appState = context.read<AppState>();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(kBorderRadius)),
+  // IMAGE 4: Edit View
+  Widget _buildEditView(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(
+        top: kPaddingMedium,
+        left: kPaddingLarge,
+        right: kPaddingLarge,
+        bottom: MediaQuery.of(context).viewInsets.bottom + kPaddingLarge,
       ),
-      builder: (BuildContext modalContext) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: kPaddingMedium,
-            right: kPaddingMedium,
-            top: kPaddingMedium,
-            bottom: MediaQuery.of(context).viewInsets.bottom + kPaddingMedium,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+           Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)),
           ),
-          child: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Modal Handle
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: kPaddingMedium),
-                
-                // Title
-                const Text(
-                  'Person Info',
-                  style: TextStyle(
-                    fontSize: kHeadingSize,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: kPaddingLarge),
-
-                // Person Name
-                CustomTextField(
-                  label: 'Person Name',
-                  controller: nameController,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a name';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: kPaddingMedium),
-
-                // Notes
-                CustomTextField(
-                  label: 'Notes',
-                  controller: notesController,
-                  maxLines: 3,
-                ),
-                const SizedBox(height: kPaddingLarge),
-
-                // Action Buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Text('Cancel'),
-                      ),
-                    ),
-                    const SizedBox(width: kPaddingMedium),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          if (formKey.currentState!.validate()) {
-                            final updatedFriend = widget.friend.copyWith(
-                              name: nameController.text,
-                              notes: notesController.text,
-                            );
-
-                            final success = await appState.updateFriend(updatedFriend);
-                            
-                            if (context.mounted) {
-                              Navigator.pop(context);
-                              if (success) {
-                                setState(() {});
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Person updated successfully'),
-                                    backgroundColor: kPrimaryColor,
-                                  ),
-                                );
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Failed to update person'),
-                                    backgroundColor: kErrorColor,
-                                  ),
-                                );
-                              }
-                            }
-                          }
-                        },
-                        child: const Text('Confirm'),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+          const SizedBox(height: kPaddingMedium),
+          const Text(
+            'Person Info',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: kPrimaryColor,
             ),
           ),
-        );
-      },
+          const SizedBox(height: kPaddingLarge),
+
+          CustomTextField(
+            label: 'Person Name',
+            controller: _nameController,
+          ),
+          const SizedBox(height: kPaddingMedium),
+          CustomTextField(
+            label: 'Notes',
+            controller: _notesController,
+          ),
+          const SizedBox(height: kPaddingLarge),
+
+          // Show Person Toggle
+          Row(
+            children: [
+              const Text(
+                'Show Person',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: kPrimaryColor,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Switch(
+                value: _isActive,
+                onChanged: (val) => setState(() => _isActive = val),
+                activeColor: Colors.white,
+                activeTrackColor: kPrimaryColor,
+              ),
+            ],
+          ),
+          const Spacer(),
+
+          // Cancel / Confirm Buttons
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {
+                    // Revert changes or just exit edit mode?
+                    // Wireframe shows "Cancel" which usually means go back to read-only
+                    setState(() {
+                      _isEditing = false;
+                      _nameController.text = widget.friend.name; // Reset
+                    });
+                  },
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    side: const BorderSide(color: kPrimaryColor),
+                  ),
+                  child: const Text('Cancel', style: TextStyle(color: kPrimaryColor)),
+                ),
+              ),
+              const SizedBox(width: kPaddingMedium),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () async {
+                    // Save changes
+                    final appState = context.read<AppState>();
+                    final updatedFriend = widget.friend.copyWith(
+                      name: _nameController.text,
+                      notes: _notesController.text,
+                      isActive: _isActive,
+                    );
+                    
+                    await appState.updateFriend(updatedFriend);
+                    
+                    if (context.mounted) {
+                      Navigator.pop(context); // Close modal on save
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Person updated successfully')),
+                      );
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: kPrimaryColor,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                  ),
+                  child: const Text('Confirm', style: TextStyle(color: Colors.white)),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: kPaddingLarge),
+        ],
+      ),
     );
+  }
+}
+
+// Extension to help with time formatting if not in AppState yet
+extension AppStateTimeExtension on AppState {
+  String formatTime(DateTime date) {
+    // Basic time formatter if one doesn't exist in AppState
+    return "${date.hour > 12 ? date.hour - 12 : date.hour}:${date.minute.toString().padLeft(2, '0')} ${date.hour >= 12 ? 'PM' : 'AM'}";
   }
 }

@@ -4,10 +4,6 @@ import '../providers/app_state.dart';
 import '../models/friend.dart';
 import '../utils/constants.dart';
 import '../widgets/stats_card.dart';
-import '../widgets/friend_list_tile.dart';
-import '../widgets/pill_card.dart';
-import '../widgets/custom_text_field.dart';
-import '../models/transaction_model.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -15,18 +11,23 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = Theme.of(context).colorScheme.primary;
+    final containerColor = isDark ? kUnpaidContainerColorDark : kUnpaidContainerColor;
 
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           "Vince's App",
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: kTextOnPrimary,
+            color: isDark ? kTextPrimaryDark : kTextOnPrimary,
           ),
         ),
-        backgroundColor: kPrimaryColor,
+        backgroundColor: isDark ? kSurfaceColorDark : kPrimaryColor,
         elevation: 0,
+        centerTitle: true,
       ),
       body: appState.isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -38,54 +39,41 @@ class DashboardScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Stats Cards
-                    Row(
-                      children: [
-                        Expanded(
-                          child: StatsCard(
-                            title: 'Total Collected Today',
-                            value: appState.formatCurrency(
-                              appState.totalCollectedToday,
-                            ),
-                            subtitle: appState.formatDate(DateTime.now()),
-                          ),
-                        ),
-                        const SizedBox(width: kPaddingMedium),
-                        Expanded(
-                          child: StatsCard(
-                            title: 'Total Collected This Week',
-                            value: appState.formatCurrency(
-                              appState.totalCollectedWeek,
-                            ),
-                            subtitle: _getWeekRange(context),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: kPaddingLarge),
-
-                    // Unpaid Today Section
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Unpaid Today',
-                          style: TextStyle(
-                            fontSize: kHeadingSize,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        IconButton(
-                          onPressed: () => _showAddPaymentModal(context),
-                          icon: const Icon(Icons.add_circle, size: 32),
-                          color: kPrimaryColor,
-                        ),
-                      ],
+                    StatsCard(
+                      title: 'Total Collected Today',
+                      value: appState.formatCurrency(appState.totalCollectedToday),
+                      subtitle: appState.formatDate(DateTime.now()),
                     ),
                     const SizedBox(height: kPaddingMedium),
-
-                    // Unpaid Friends List
-                    _buildUnpaidList(context, appState),
+                    StatsCard(
+                      title: 'Total Collected This Week',
+                      value: appState.formatCurrency(appState.totalCollectedWeek),
+                      subtitle: _getWeekRange(context),
+                    ),
+                    const SizedBox(height: kPaddingLarge),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(kPaddingMedium),
+                      decoration: BoxDecoration(
+                        color: containerColor,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            'Unpaid Today',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: primaryColor,
+                            ),
+                          ),
+                          const SizedBox(height: kPaddingMedium),
+                          _buildUnpaidList(context, appState),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 100),
                   ],
                 ),
               ),
@@ -94,265 +82,54 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildUnpaidList(BuildContext context, AppState appState) {
-    final unpaidFriends = appState.getUnpaidToday();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final listItemColor = isDark ? kListItemColorDark : kListItemColor;
+    final textColor = isDark ? kTextPrimaryDark : const Color(0xFF333333);
 
+    final unpaidFriends = appState.getUnpaidToday();
     if (unpaidFriends.isEmpty) {
-      return PillCard(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(kPaddingLarge),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.check_circle_outline,
-                  size: 64,
-                  color: Colors.grey[400],
-                ),
-                const SizedBox(height: kPaddingMedium),
-                Text(
-                  'All caught up!',
-                  style: TextStyle(
-                    fontSize: kTitleSize,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: kPaddingSmall),
-                Text(
-                  'No unpaid transactions today',
-                  style: TextStyle(
-                    fontSize: kBodySize,
-                    color: Colors.grey[500],
-                  ),
-                ),
-              ],
-            ),
-          ),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: kPaddingLarge),
+        child: Column(
+          children: [
+            Icon(Icons.check_circle_outline, size: 48, color: Colors.grey[600]),
+            const SizedBox(height: 8),
+            Text('All clear for today!', style: TextStyle(color: Colors.grey[600])),
+          ],
         ),
       );
     }
-
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: unpaidFriends.length,
-      separatorBuilder: (context, index) =>
-          const SizedBox(height: kPaddingMedium),
+      separatorBuilder: (context, index) => const SizedBox(height: kPaddingSmall),
       itemBuilder: (context, index) {
         final friend = unpaidFriends[index];
-        return FriendListTile(
-          friend: friend,
-          onTap: () => _showAddPaymentModal(context, friend: friend),
-        );
+        return Container(
+            padding: const EdgeInsets.symmetric(horizontal: kPaddingMedium, vertical: kPaddingLarge),
+            decoration: BoxDecoration(
+              color: listItemColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(friend.name, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: textColor)),
+                Text(appState.formatCurrency(friend.totalBalance), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textColor)),
+              ],
+            ),
+          );
       },
     );
   }
 
   String _getWeekRange(BuildContext context) {
+    // ... same as before
     final now = DateTime.now();
     final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
     final endOfWeek = startOfWeek.add(const Duration(days: 6));
-    
     final formatter = context.read<AppState>();
     return '${formatter.formatDate(startOfWeek)} - ${formatter.formatDate(endOfWeek)}';
-  }
-
-  void _showAddPaymentModal(BuildContext context, {Friend? friend}) {
-    final formKey = GlobalKey<FormState>();
-    final appState = context.read<AppState>();
-    
-    Friend? selectedFriend = friend;
-    final amountController = TextEditingController();
-    final claimedByController = TextEditingController();
-    final notesController = TextEditingController();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(kBorderRadius)),
-      ),
-      builder: (BuildContext modalContext) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return Padding(
-              padding: EdgeInsets.only(
-                left: kPaddingMedium,
-                right: kPaddingMedium,
-                top: kPaddingMedium,
-                bottom: MediaQuery.of(context).viewInsets.bottom + kPaddingMedium,
-              ),
-              child: Form(
-                key: formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Modal Handle
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: kPaddingMedium),
-                    
-                    // Title
-                    const Text(
-                      'Add New Payment',
-                      style: TextStyle(
-                        fontSize: kHeadingSize,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: kPaddingLarge),
-
-                    // Person Name Dropdown
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Person Name',
-                          style: TextStyle(
-                            fontSize: kBodySize,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: kPaddingSmall),
-                        DropdownButtonFormField<Friend>(
-                          initialValue: selectedFriend,
-                          decoration: InputDecoration(
-                            hintText: 'Select person',
-                            suffixIcon: const Icon(Icons.person),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(kBorderRadius),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value == null) {
-                              return 'Please select a person';
-                            }
-                            return null;
-                          },
-                          items: appState.activeFriends.map((f) {
-                            return DropdownMenuItem<Friend>(
-                              value: f,
-                              child: Text(f.name),
-                            );
-                          }).toList(),
-                          onChanged: (Friend? value) {
-                            setState(() {
-                              selectedFriend = value;
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: kPaddingMedium),
-
-                    // Payment Amount
-                    CustomTextField(
-                      label: 'Payment',
-                      hintText: 'Enter amount',
-                      controller: amountController,
-                      keyboardType: TextInputType.number,
-                      prefixIcon: const Icon(Icons.currency_exchange),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter an amount';
-                        }
-                        if (double.tryParse(value) == null) {
-                          return 'Please enter a valid number';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: kPaddingMedium),
-
-                    // Claimed By
-                    CustomTextField(
-                      label: 'Claimed by',
-                      hintText: 'Enter name',
-                      controller: claimedByController,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter who claimed this';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: kPaddingMedium),
-
-                    // Notes
-                    CustomTextField(
-                      label: 'Notes',
-                      hintText: 'Optional notes',
-                      controller: notesController,
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: kPaddingLarge),
-
-                    // Action Buttons
-                    Row(
-                      children: [
-                        Expanded(
-                          child: OutlinedButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Cancel'),
-                          ),
-                        ),
-                        const SizedBox(width: kPaddingMedium),
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              if (formKey.currentState!.validate()) {
-                                final transaction = TransactionModel(
-                                  friendId: selectedFriend!.id!,
-                                  amount: double.parse(amountController.text),
-                                  date: DateTime.now(),
-                                  claimedBy: claimedByController.text,
-                                  notes: notesController.text,
-                                  type: 'payment',
-                                );
-
-                                final success = await appState.addTransaction(transaction);
-                                
-                                if (context.mounted) {
-                                  Navigator.pop(context);
-                                  if (success) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Payment added successfully'),
-                                        backgroundColor: kPrimaryColor,
-                                      ),
-                                    );
-                                  } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Failed to add payment'),
-                                        backgroundColor: kErrorColor,
-                                      ),
-                                    );
-                                  }
-                                }
-                              }
-                            },
-                            child: const Text('Add Payment'),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
   }
 }
