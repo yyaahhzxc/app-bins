@@ -1,0 +1,40 @@
+name: vince_app
+description: A professional debt tracker application with clean architecture
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # State Management
+  provider: ^6.1.1
+  
+  # Local Database
+  sqflite: ^2.3.0
+  path: ^1.8.3
+  
+  # Date & Time Formatting
+  intl: ^0.18.1
+  
+  # Data Import/Export
+  share_plus: ^7.2.1
+  file_picker: ^6.1.1
+  
+  # UI Enhancement
+  google_fonts: ^6.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  
+  # Add any assets here in the future
+  # assets:
+  #   - assets/images/
