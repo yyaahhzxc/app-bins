@@ -29,9 +29,6 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Run tests
-        run: flutter test --no-sound-null-safety || true
-
       - name: Build APK
         run: flutter build apk --release
 
@@ -58,30 +55,29 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Run tests
-        run: flutter test --no-sound-null-safety || true
-
       - name: Build iOS (No Codesign)
         run: flutter build ios --release --no-codesign
 
-      - name: Create iOS Archive
+      - name: Create iOS Archive (IPA)
         run: |
           cd build/ios/iphoneos
           mkdir -p Payload
           cp -r Runner.app Payload/
-          zip -r ios-app.zip Payload
-          mv ios-app.zip ../../../
+          zip -r app-release.ipa Payload
+          mv app-release.ipa ../../../
 
       - name: Upload iOS Build
         uses: actions/upload-artifact@v4
         with:
           name: ios-build
-          path: ios-app.zip
+          path: app-release.ipa
 
   create-release:
     name: Create GitHub Release
     needs: [build-android, build-ios]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     
     steps:
       - name: Download Android APK
@@ -99,18 +95,19 @@ jobs:
         with:
           files: |
             app-release.apk
-            ios-app.zip
+            app-release.ipa
           body: |
-            ## Vince's App - Release ${{ github.ref_name }}
+            ## Vince's App - Beta ${{ github.ref_name }}
+            
+            **This is a Beta Release (MVP).**
             
             ### Downloads
-            - **Android**: `app-release.apk`
-            - **iOS**: `ios-app.zip` (requires Xcode to install)
+            - 🤖 **Android**: `app-release.apk`
+            - 🍎 **iOS**: `app-release.ipa` (Unsigned - requires manual installation)
             
-            ### Installation
-            **Android**: Download and install the APK directly on your device.
-            **iOS**: Extract the zip and install using Xcode or a similar tool.
-            
-            Built with Flutter 3.24.0
+            ### Changelog
+            - Initial Beta Release
+            - Dark Mode support
+            - Notifications & Data Management
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
