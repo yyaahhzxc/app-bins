@@ -55,6 +55,20 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
 
+      - name: Pod Install
+        run: |
+          cd ios
+          pod install
+          cd ..
+
+      # NEW STEP: Force disable signing in Xcode project
+      - name: Disable iOS Signing
+        run: |
+          sed -i '' 's/CODE_SIGNING_ALLOWED = YES/CODE_SIGNING_ALLOWED = NO/g' ios/Runner.xcodeproj/project.pbxproj
+          sed -i '' 's/CODE_SIGNING_REQUIRED = YES/CODE_SIGNING_REQUIRED = NO/g' ios/Runner.xcodeproj/project.pbxproj
+          sed -i '' 's/CODE_SIGN_STYLE = Automatic/CODE_SIGN_STYLE = Manual/g' ios/Runner.xcodeproj/project.pbxproj
+          sed -i '' 's/DevelopmentTeam = .*/DevelopmentTeam = "";/g' ios/Runner.xcodeproj/project.pbxproj
+
       - name: Build iOS (No Codesign)
         run: flutter build ios --release --no-codesign
 
@@ -103,7 +117,7 @@ jobs:
             
             ### Downloads
             - 🤖 **Android**: `app-release.apk`
-            - 🍎 **iOS**: `app-release.ipa` (Unsigned - requires manual installation)
+            - 🍎 **iOS**: `app-release.ipa` (For TrollStore / AltStore)
             
             ### Changelog
             - Initial Beta Release
