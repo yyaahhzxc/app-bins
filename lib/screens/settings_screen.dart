@@ -201,6 +201,10 @@ class SettingsScreen extends StatelessWidget {
           color: isDark ? kSurfaceColorDark : Colors.white,
           border: Border.all(color: isDark ? Colors.grey[800]! : const Color(0xFFE0E0E0)),
           borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            // REVERTED: withValues -> withOpacity
+            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4),
+          ],
         ),
         child: Row(
           children: [

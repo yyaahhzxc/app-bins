@@ -61,30 +61,35 @@ jobs:
           pod install
           cd ..
 
-      # NEW STEP: Force disable signing in Xcode project
-      - name: Disable iOS Signing
-        run: |
-          sed -i '' 's/CODE_SIGNING_ALLOWED = YES/CODE_SIGNING_ALLOWED = NO/g' ios/Runner.xcodeproj/project.pbxproj
-          sed -i '' 's/CODE_SIGNING_REQUIRED = YES/CODE_SIGNING_REQUIRED = NO/g' ios/Runner.xcodeproj/project.pbxproj
-          sed -i '' 's/CODE_SIGN_STYLE = Automatic/CODE_SIGN_STYLE = Manual/g' ios/Runner.xcodeproj/project.pbxproj
-          sed -i '' 's/DevelopmentTeam = .*/DevelopmentTeam = "";/g' ios/Runner.xcodeproj/project.pbxproj
+      # Prepare iOS build (generate Generated.xcconfig)
+      - name: Flutter Build IOS (Pre-build)
+        run: flutter build ios --config-only
 
-      - name: Build iOS (No Codesign)
-        run: flutter build ios --release --no-codesign
-
-      - name: Create iOS Archive (IPA)
+      # Build Unsigned IPA directly using xcodebuild
+      - name: Build Unsigned IPA
         run: |
-          cd build/ios/iphoneos
-          mkdir -p Payload
-          cp -r Runner.app Payload/
+          cd ios
+          xcodebuild -workspace Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -sdk iphoneos \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            -destination 'generic/platform=iOS' \
+            -archivePath Runner.xcarchive \
+            archive
+
+          # Create Payload structure for IPA
+          mkdir Payload
+          cp -r Runner.xcarchive/Products/Applications/Runner.app Payload/
           zip -r app-release.ipa Payload
-          mv app-release.ipa ../../../
 
       - name: Upload iOS Build
         uses: actions/upload-artifact@v4
         with:
           name: ios-build
-          path: app-release.ipa
+          path: ios/app-release.ipa
 
   create-release:
     name: Create GitHub Release

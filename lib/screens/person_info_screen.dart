@@ -199,14 +199,16 @@ class _PersonInfoModalState extends State<PersonInfoModal> {
             separatorBuilder: (context, index) => const SizedBox(height: kPaddingMedium),
             itemBuilder: (context, index) {
               final tx = transactions[index];
-              return Container(
+                return Container(
                 padding: const EdgeInsets.all(kPaddingMedium),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                  // REVERTED: withValues -> withOpacity
+                  border: Border.all(color: Colors.grey.withOpacity(0.2)),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4),
+                    // REVERTED: withValues -> withOpacity
+                    BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4),
                   ],
                 ),
                 child: Column(

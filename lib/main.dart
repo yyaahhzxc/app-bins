@@ -49,8 +49,8 @@ class VinceApp extends StatelessWidget {
         onSurface: kTextPrimary,
       ),
       textTheme: GoogleFonts.poppinsTextTheme(base.textTheme),
-      // CHANGED: CardTheme -> CardThemeData (based on your error logs)
-      cardTheme: CardThemeData(
+      // FIXED: Used standard CardTheme
+      cardTheme: CardTheme(
         color: kSurfaceColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(kBorderRadius)),
       ),
@@ -78,8 +78,8 @@ class VinceApp extends StatelessWidget {
         bodyColor: kTextPrimaryDark,
         displayColor: kTextPrimaryDark,
       ),
-      // CHANGED: CardTheme -> CardThemeData (based on your error logs)
-      cardTheme: CardThemeData(
+      // FIXED: Used standard CardTheme
+      cardTheme: CardTheme(
         color: kSurfaceColorDark,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(kBorderRadius)),
       ),
