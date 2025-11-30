@@ -26,6 +26,10 @@ jobs:
           flutter-version: '3.24.0'
           channel: 'stable'
 
+      # FIX: This step is crucial for Linux runners to build Android apps
+      - name: Make Gradlew Executable
+        run: chmod +x android/gradlew
+
       - name: Get dependencies
         run: flutter pub get
 
@@ -38,62 +42,9 @@ jobs:
           name: android-apk
           path: build/app/outputs/flutter-apk/app-release.apk
 
-  build-ios:
-    name: Build iOS
-    runs-on: macos-latest
-    
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.24.0'
-          channel: 'stable'
-
-      - name: Get dependencies
-        run: flutter pub get
-
-      - name: Pod Install
-        run: |
-          cd ios
-          pod install
-          cd ..
-
-      # Prepare iOS build (generate Generated.xcconfig)
-      - name: Flutter Build IOS (Pre-build)
-        run: flutter build ios --config-only
-
-      # Build Unsigned IPA directly using xcodebuild
-      - name: Build Unsigned IPA
-        run: |
-          cd ios
-          xcodebuild -workspace Runner.xcworkspace \
-            -scheme Runner \
-            -configuration Release \
-            -sdk iphoneos \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            -destination 'generic/platform=iOS' \
-            -archivePath Runner.xcarchive \
-            archive
-
-          # Create Payload structure for IPA
-          mkdir Payload
-          cp -r Runner.xcarchive/Products/Applications/Runner.app Payload/
-          zip -r app-release.ipa Payload
-
-      - name: Upload iOS Build
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-build
-          path: ios/app-release.ipa
-
   create-release:
     name: Create GitHub Release
-    needs: [build-android, build-ios]
+    needs: build-android # Changed: Only depends on Android to ensure APK release
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -104,29 +55,16 @@ jobs:
         with:
           name: android-apk
 
-      - name: Download iOS Build
-        uses: actions/download-artifact@v4
-        with:
-          name: ios-build
-
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            app-release.apk
-            app-release.ipa
+          files: app-release.apk
           body: |
-            ## Vince's App - Beta ${{ github.ref_name }}
+            ## Vince's App - ${{ github.ref_name }}
             
-            **This is a Beta Release (MVP).**
+            **Automated Release**
             
             ### Downloads
             - 🤖 **Android**: `app-release.apk`
-            - 🍎 **iOS**: `app-release.ipa` (For TrollStore / AltStore)
-            
-            ### Changelog
-            - Initial Beta Release
-            - Dark Mode support
-            - Notifications & Data Management
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
