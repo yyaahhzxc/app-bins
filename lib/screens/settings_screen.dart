@@ -12,11 +12,11 @@ import '../widgets/custom_text_field.dart';
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
-    @override
-      Widget build(BuildContext context) {
-        final appState = context.watch<AppState>();
-        final isDark = Theme.of(context).brightness == Brightness.dark;
-        final primaryColor = Theme.of(context).colorScheme.primary;
+  @override
+  Widget build(BuildContext context) {
+    final appState = context.watch<AppState>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -44,21 +44,21 @@ class SettingsScreen extends StatelessWidget {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: primaryColor),
               ),
               const SizedBox(height: kPaddingMedium),
-                Container(
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: isDark ? Colors.grey[700]! : Colors.grey[300]!),
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                                child: Row(
-                                  children: [
-                                    _buildThemeSegment(context, 'Light', 0, appState.themeMode),
-                                    Container(width: 1, height: 40, color: isDark ? Colors.grey[700] : Colors.grey[300]),
-                                    _buildThemeSegment(context, 'System', 1, appState.themeMode),
-                                    Container(width: 1, height: 40, color: isDark ? Colors.grey[700] : Colors.grey[300]),
-                                    _buildThemeSegment(context, 'Dark', 2, appState.themeMode),
-                                  ],
-                                ),
-                              ),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: isDark ? Colors.grey[700]! : Colors.grey[300]!),
+                  borderRadius: BorderRadius.circular(30),
+                ),
+                child: Row(
+                  children: [
+                    _buildThemeSegment(context, 'Light', 0, appState.themeMode),
+                    Container(width: 1, height: 40, color: isDark ? Colors.grey[700] : Colors.grey[300]),
+                    _buildThemeSegment(context, 'System', 1, appState.themeMode),
+                    Container(width: 1, height: 40, color: isDark ? Colors.grey[700] : Colors.grey[300]),
+                    _buildThemeSegment(context, 'Dark', 2, appState.themeMode),
+                  ],
+                ),
+              ),
               const SizedBox(height: kPaddingLarge),
 
               // Notifications
@@ -201,7 +201,7 @@ class SettingsScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             // REVERTED: withValues -> withOpacity
-            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4),
+            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4),
           ],
         ),
         child: Row(
@@ -221,21 +221,20 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
             Switch(
-                          value: notification.isActive,
-                          onChanged: (val) {
-                            appState.updateNotification(notification.copyWith(isActive: val));
-                          },
-                          // FIXED: activeThumbColor
-                          activeThumbColor: Colors.white,
-                          activeTrackColor: primaryColor,
-                        ),
-                      ],
+              value: notification.isActive,
+              onChanged: (val) {
+                appState.updateNotification(notification.copyWith(isActive: val));
+              },
+              // REVERTED: activeThumbColor -> activeColor
+              activeColor: Colors.white,
+              activeTrackColor: primaryColor,
+            ),
+          ],
         ),
       ),
     );
   }
 
-  // BUG FIX: Added validation check and error handling
   void _showNotificationModal(BuildContext context, NotificationModel? notification) {
     final isEditing = notification != null;
     final timeController = TextEditingController(text: notification?.time ?? '12:00 PM');
@@ -254,7 +253,6 @@ class SettingsScreen extends StatelessWidget {
           builder: (context, setState) {
             final primaryColor = Theme.of(context).colorScheme.primary;
             final isDark = Theme.of(context).brightness == Brightness.dark;
-            final textColor = isDark ? kTextPrimaryDark : kTextPrimary;
 
             return Padding(
               padding: EdgeInsets.only(
@@ -306,6 +304,7 @@ class SettingsScreen extends StatelessWidget {
                           Switch(
                             value: isActive,
                             onChanged: (val) => setState(() => isActive = val),
+                            // REVERTED: activeThumbColor -> activeColor
                             activeColor: Colors.white,
                             activeTrackColor: primaryColor,
                           ),
@@ -356,7 +355,6 @@ class SettingsScreen extends StatelessWidget {
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () async {
-                            // Validation Logic
                             if (timeController.text.isEmpty || descController.text.trim().isEmpty) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -368,30 +366,22 @@ class SettingsScreen extends StatelessWidget {
                             }
 
                             final appState = context.read<AppState>();
-                            bool success;
                             
                             if (isEditing) {
-                              success = await appState.updateNotification(notification.copyWith(
+                              await appState.updateNotification(notification.copyWith(
                                 time: timeController.text,
                                 description: descController.text,
                                 isActive: isActive,
                               ));
                             } else {
-                              success = await appState.addNotification(NotificationModel(
+                              await appState.addNotification(NotificationModel(
                                 time: timeController.text,
                                 description: descController.text,
                                 isActive: isActive,
                               ));
                             }
                             
-                            if (context.mounted) {
-                              Navigator.pop(context);
-                              if (!success) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Failed to save. Database error.'), backgroundColor: kErrorColor),
-                                );
-                              }
-                            }
+                            if (context.mounted) Navigator.pop(context);
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: primaryColor,
@@ -412,7 +402,6 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 
-  // ... (Data methods same as previous turn) ...
   Future<void> _exportData(BuildContext context, AppState appState) async {
     final jsonData = appState.exportData();
     final fileName = 'vince_app_backup_${DateTime.now().millisecondsSinceEpoch}.json';

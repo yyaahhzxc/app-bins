@@ -55,7 +55,7 @@ class _PersonInfoModalState extends State<PersonInfoModal> {
             child: Material(
               color: Colors.transparent,
               child: Text(
-                widget.friend.name, // Use dynamic name if needed, but Hero needs stable tag
+                widget.friend.name, 
                 style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -159,7 +159,7 @@ class _PersonInfoModalState extends State<PersonInfoModal> {
     );
   }
 
-Widget _buildPaymentInfoTab(BuildContext context) {
+  Widget _buildPaymentInfoTab(BuildContext context) {
     final appState = context.watch<AppState>();
     final transactions = appState.getTransactionsByFriend(widget.friend.id!);
 
@@ -167,12 +167,10 @@ Widget _buildPaymentInfoTab(BuildContext context) {
       child: Column(
         children: [
           const Text(
-            // FIXED: Quotes
             'Payment Summary',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: kPrimaryColor),
           ),
           Text(
-            // FIXED: Quotes
             'Last Paid: ${widget.friend.lastPaidDate != null ? appState.formatDate(widget.friend.lastPaidDate!) : 'Never'}',
             style: TextStyle(color: Colors.grey[600], fontSize: 12),
           ),
@@ -192,11 +190,11 @@ Widget _buildPaymentInfoTab(BuildContext context) {
                   decoration: BoxDecoration(
                     color: Theme.of(context).cardColor,
                     borderRadius: BorderRadius.circular(16),
-                    // FIXED: withValues
-                    border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                    // REVERTED: withValues -> withOpacity
+                    border: Border.all(color: Colors.grey.withOpacity(0.2)),
                     boxShadow: [
-                      // FIXED: withValues
-                      BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4),
+                      // REVERTED: withValues -> withOpacity
+                      BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4),
                     ],
                   ),
                   child: Column(
@@ -281,8 +279,8 @@ Widget _buildPaymentInfoTab(BuildContext context) {
                 Switch(
                   value: _isActive,
                   onChanged: (val) => setState(() => _isActive = val),
-                  // FIXED: activeThumbColor
-                  activeThumbColor: Colors.white,
+                  // REVERTED: activeThumbColor -> activeColor
+                  activeColor: Colors.white,
                   activeTrackColor: kPrimaryColor,
                 ),
               ],

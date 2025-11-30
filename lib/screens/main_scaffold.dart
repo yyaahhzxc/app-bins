@@ -48,10 +48,9 @@ class _MainScaffoldState extends State<MainScaffold> with SingleTickerProviderSt
     super.dispose();
   }
 
-void _toggleFab() {
+  void _toggleFab() {
     setState(() {
       _isFabOpen = !_isFabOpen;
-      // FIXED: Curly braces
       if (_isFabOpen) {
         _fabAnimationController.forward();
       } else {
@@ -60,7 +59,7 @@ void _toggleFab() {
     });
   }
 
-void _closeFab() {
+  void _closeFab() {
     if (_isFabOpen) {
       setState(() {
         _isFabOpen = false;
@@ -69,7 +68,8 @@ void _closeFab() {
     }
   }
 
-  // =================== ADD PERSON MODAL ===================
+  // ... (Modal methods same as previous logic) ...
+  // Keeping this concise but complete for the full file replacement needed
   void _showAddPersonModal(BuildContext context) {
     _closeFab();
     final nameController = TextEditingController();
@@ -148,12 +148,10 @@ void _closeFab() {
     );
   }
 
-  // =================== ADD PAYMENT MODAL ===================
   void _showAddPaymentModal(BuildContext context) {
     _closeFab();
     final appState = context.read<AppState>();
     
-    // Check if we have friends first
     if (appState.activeFriends.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Add a person first!'), backgroundColor: kErrorColor),
@@ -192,7 +190,6 @@ void _closeFab() {
                     Text('Record Payment', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Theme.of(context).primaryColor)),
                     const SizedBox(height: 20),
 
-                    // Friend Dropdown
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                       decoration: BoxDecoration(
@@ -229,7 +226,6 @@ void _closeFab() {
                     ),
                     const SizedBox(height: 12),
                     
-                    // Date Picker
                     InkWell(
                       onTap: () async {
                         final picked = await showDatePicker(
@@ -274,7 +270,7 @@ void _closeFab() {
                               amount: double.parse(amountController.text),
                               date: selectedDate,
                               notes: notesController.text.trim(),
-                              claimedBy: 'User', // Default or could be input
+                              claimedBy: 'User',
                             ));
                             
                             if (context.mounted) {
@@ -317,16 +313,15 @@ void _closeFab() {
       body: Stack(
         children: [
           _screens[_selectedIndex],
-            if (_isFabOpen)
-                        Positioned.fill(
-                          child: GestureDetector(
-                            onTap: _closeFab,
-                            // FIXED: withValues
-                            child: Container(color: Colors.black.withValues(alpha: 0.6)),
-                          ),
-                        ),
+          if (_isFabOpen)
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: _closeFab,
+                // REVERTED: withValues -> withOpacity
+                child: Container(color: Colors.black.withOpacity(0.6)),
+              ),
+            ),
           
-          // FAB Menu Items
           if (_isFabOpen)
             Positioned(
               bottom: 100,

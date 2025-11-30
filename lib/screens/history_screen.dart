@@ -12,13 +12,10 @@ class HistoryScreen extends StatefulWidget {
 }
 
 class _HistoryScreenState extends State<HistoryScreen> {
-  // Filters: 'Today', 'Week', 'Month', 'All'
   String _selectedFilter = 'All';
   DateTimeRange? _selectedDateRange;
-
-  // Sort
-  String _sortBy = 'Date'; // 'Date', 'Amount', 'Name'
-  bool _isAscending = false; // Default newest first
+  String _sortBy = 'Date';
+  bool _isAscending = false;
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +23,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryColor = Theme.of(context).colorScheme.primary;
 
-    // 1. Filter Logic
     List<TransactionModel> filteredList = appState.transactions;
     final now = DateTime.now();
 
@@ -58,15 +54,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
           break;
         case 'All':
         default:
-          // Keep all
           break;
       }
     }
 
-    // 2. Search Logic (Optional, assuming Search is handled in AppState or locally if needed)
-    // For now, we rely on the list we have.
-
-    // 3. Sort Logic
     filteredList = appState.sortTransactions(filteredList, _sortBy, _isAscending);
 
     return Scaffold(
@@ -88,7 +79,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   ),
                   const SizedBox(height: kPaddingMedium),
 
-                  // Filter Chips Row
                   SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
@@ -99,8 +89,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         _buildFilterChip('Month'),
                         const SizedBox(width: 8),
                         
-                        // Custom Date Range Pill
-InkWell(
+                        InkWell(
                           onTap: () => _pickDateRange(context),
                           borderRadius: BorderRadius.circular(20),
                           child: Container(
@@ -140,9 +129,11 @@ InkWell(
                             ),
                           ),
                         ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: kPaddingMedium),
 
-                  // Sort Row
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -177,7 +168,6 @@ InkWell(
               ),
             ),
 
-            // List
             Expanded(
               child: filteredList.isEmpty
                   ? Center(
@@ -218,12 +208,13 @@ InkWell(
           if (selected) {
             setState(() {
               _selectedFilter = label;
-              _selectedDateRange = null; // Clear custom range when preset selected
+              _selectedDateRange = null; 
             });
           }
         },
         backgroundColor: Colors.transparent,
-        selectedColor: primaryColor.withValues(alpha: 0.1),
+        // REVERTED: withValues -> withOpacity
+        selectedColor: primaryColor.withOpacity(0.1),
         labelStyle: TextStyle(
           color: isSelected ? primaryColor : Colors.grey[600],
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -248,14 +239,16 @@ InkWell(
       decoration: BoxDecoration(
         color: isDark ? kSurfaceColorDark : Colors.white,
         borderRadius: BorderRadius.circular(16),
+        // REVERTED: withValues -> withOpacity
         border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+        boxShadow: [
+          BoxShadow(
+            // REVERTED: withValues -> withOpacity
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [

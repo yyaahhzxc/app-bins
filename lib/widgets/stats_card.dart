@@ -24,13 +24,13 @@ class StatsCard extends StatelessWidget {
         color: isDark ? kSurfaceColorDark : kSurfaceColor,
         borderRadius: BorderRadius.circular(kBorderRadius),
         border: Border.all(
-          // FIXED: withValues
-          color: isDark ? Colors.grey.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.2)
+          // REVERTED: withValues -> withOpacity
+          color: isDark ? Colors.grey.withOpacity(0.1) : Colors.grey.withOpacity(0.2)
         ),
         boxShadow: [
           BoxShadow(
-            // FIXED: withValues
-            color: Colors.black.withValues(alpha: 0.05),
+            // REVERTED: withValues -> withOpacity
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
