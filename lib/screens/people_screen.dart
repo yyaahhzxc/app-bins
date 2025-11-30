@@ -4,6 +4,7 @@ import '../providers/app_state.dart';
 import '../models/friend.dart';
 import '../utils/constants.dart';
 import 'person_info_screen.dart';
+import '../widgets/fade_in_slide.dart';
 
 class PeopleScreen extends StatefulWidget {
   const PeopleScreen({super.key});
@@ -15,30 +16,22 @@ class PeopleScreen extends StatefulWidget {
 class _PeopleScreenState extends State<PeopleScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  
-  // Sort State
-  String _sortBy = 'Name'; // 'Name' or 'Last Paid'
-  bool _isAscending = true; // Ascending Order?
-
+  String _sortBy = 'Name'; 
+  bool _isAscending = true; 
   bool _showArchived = false;
 
   @override
   Widget build(BuildContext context) {
     final appState = context.watch<AppState>();
     
-    // Get the base list (Active or Archived)
     final baseList = _showArchived ? appState.archivedFriends : appState.activeFriends;
-
-    // Apply Sort to the base list first
     final sortedList = appState.sortFriends(baseList, _sortBy, _isAscending);
-    
-    // Apply Search to the sorted list
     final friends = _searchQuery.isEmpty
         ? sortedList
         : appState.searchFriends(_searchQuery, searchArchived: _showArchived);
     
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -48,50 +41,43 @@ class _PeopleScreenState extends State<PeopleScreen> {
                 children: [
                   const Text(
                     'Persons',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: kPrimaryColor,
-                    ),
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: kPrimaryColor),
                   ),
                   const SizedBox(height: kPaddingLarge),
 
                   TextField(
                     controller: _searchController,
                     decoration: InputDecoration(
-                      hintText: _showArchived ? 'Search archive...' : 'Hinted search text',
+                      // FIXED: Quotes
+                      hintText: _showArchived ? 'Search archive...' : 'Search people...',
                       suffixIcon: const Icon(Icons.search, color: Colors.grey),
                       filled: true,
-                      fillColor: const Color(0xFFF0F0F0),
+                      fillColor: Theme.of(context).brightness == Brightness.dark 
+                          ? Colors.grey[800] 
+                          : const Color(0xFFF0F0F0),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(30),
                         borderSide: BorderSide.none,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: kPaddingLarge,
-                        vertical: 14,
-                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: kPaddingLarge, vertical: 14),
                     ),
                     onChanged: (value) => setState(() => _searchQuery = value),
                   ),
                   const SizedBox(height: kPaddingMedium),
 
-                  // Sort & Archive Row
                   Row(
                     children: [
                       const Icon(Icons.sort, size: 20),
                       const SizedBox(width: 8),
-                      
-                      // Sort Clickable Text
                       PopupMenuButton<String>(
                         initialValue: _sortBy,
                         onSelected: (String item) {
                           setState(() {
                             if (_sortBy == item) {
-                              _isAscending = !_isAscending; // Toggle order if same selected
+                              _isAscending = !_isAscending; 
                             } else {
                               _sortBy = item;
-                              _isAscending = true; // Reset to Ascending for new item
+                              _isAscending = true; 
                             }
                           });
                         },
@@ -102,8 +88,9 @@ class _PeopleScreenState extends State<PeopleScreen> {
                         child: Row(
                           children: [
                             Text(
+                              // FIXED: Quotes
                               'Sort by: $_sortBy',
-                              style: const TextStyle(fontWeight: FontWeight.w500),
+                              style: TextStyle(fontWeight: FontWeight.w500, color: Theme.of(context).textTheme.bodyMedium?.color),
                             ),
                             Icon(
                               _isAscending ? Icons.arrow_upward : Icons.arrow_downward,
@@ -112,16 +99,14 @@ class _PeopleScreenState extends State<PeopleScreen> {
                           ],
                         ),
                       ),
-                      
                       const Spacer(),
-                      
-                      // Archive Button
                       IconButton(
                         icon: Icon(
                           _showArchived ? Icons.archive : Icons.archive_outlined,
                           color: kPrimaryColor,
                         ),
-                        tooltip: _showArchived ? "Show Active" : "Show Archived",
+                        // FIXED: Quotes
+                        tooltip: _showArchived ? 'Show Active' : 'Show Archived',
                         onPressed: () {
                           setState(() {
                             _showArchived = !_showArchived;
@@ -130,8 +115,6 @@ class _PeopleScreenState extends State<PeopleScreen> {
                       ),
                     ],
                   ),
-                  
-                  // Context indicator
                   if (_showArchived)
                     Container(
                       width: double.infinity,
@@ -139,8 +122,8 @@ class _PeopleScreenState extends State<PeopleScreen> {
                       color: Colors.grey[200],
                       child: const Center(
                         child: Text(
-                          "ARCHIVED VIEW",
-                          style: TextStyle(fontSize: 10, letterSpacing: 1.5, fontWeight: FontWeight.bold),
+                          'ARCHIVED VIEW',
+                          style: TextStyle(fontSize: 10, letterSpacing: 1.5, fontWeight: FontWeight.bold, color: Colors.black54),
                         ),
                       ),
                     ),
@@ -151,9 +134,16 @@ class _PeopleScreenState extends State<PeopleScreen> {
             Expanded(
               child: friends.isEmpty
                   ? Center(
-                      child: Text(
-                        _showArchived ? 'No archived persons' : 'No persons found',
-                        style: TextStyle(color: Colors.grey[400]),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.person_off_outlined, size: 48, color: Colors.grey[400]),
+                          const SizedBox(height: 16),
+                          Text(
+                            _showArchived ? 'No archived persons' : 'No persons found',
+                            style: TextStyle(color: Colors.grey[400]),
+                          ),
+                        ],
                       ),
                     )
                   : ListView.separated(
@@ -161,8 +151,10 @@ class _PeopleScreenState extends State<PeopleScreen> {
                       itemCount: friends.length,
                       separatorBuilder: (context, index) => const SizedBox(height: 12),
                       itemBuilder: (context, index) {
-                        final friend = friends[index];
-                        return _buildPersonTile(context, appState, friend);
+                        return FadeInSlide(
+                          index: index,
+                          child: _buildPersonTile(context, appState, friends[index]),
+                        );
                       },
                     ),
             ),
@@ -173,43 +165,57 @@ class _PeopleScreenState extends State<PeopleScreen> {
   }
 
   Widget _buildPersonTile(BuildContext context, AppState appState, Friend friend) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: () {
         showModalBottomSheet(
           context: context,
           isScrollControlled: true,
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
           builder: (context) => PersonInfoModal(friend: friend),
         );
       },
+      borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.all(kPaddingMedium),
         decoration: BoxDecoration(
-          color: const Color(0xFFE8EAF6),
+          color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFE8EAF6),
           borderRadius: BorderRadius.circular(16),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              friend.name,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF333333),
-              ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Hero(
+                  tag: 'friend_name_${friend.id}',
+                  child: Material(
+                    color: Colors.transparent,
+                    child: Text(
+                      friend.name,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : const Color(0xFF333333),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Last Paid: ${friend.lastPaidDate != null ? appState.formatDate(friend.lastPaidDate!) : "Never"}',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              'Last Paid: ${friend.lastPaidDate != null ? appState.formatDate(friend.lastPaidDate!) : "Never"}',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
-            ),
+            Icon(Icons.chevron_right, color: Colors.grey[400]),
           ],
         ),
       ),

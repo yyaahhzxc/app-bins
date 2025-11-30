@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import '../providers/app_state.dart';
 import '../models/transaction_model.dart';
 import '../utils/constants.dart';
@@ -101,7 +100,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         const SizedBox(width: 8),
                         
                         // Custom Date Range Pill
-                        InkWell(
+InkWell(
                           onTap: () => _pickDateRange(context),
                           borderRadius: BorderRadius.circular(20),
                           child: Container(
@@ -141,9 +140,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                  ),
                   const SizedBox(height: kPaddingMedium),
 
                   // Sort Row
@@ -227,7 +223,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           }
         },
         backgroundColor: Colors.transparent,
-        selectedColor: primaryColor.withOpacity(0.1),
+        selectedColor: primaryColor.withValues(alpha: 0.1),
         labelStyle: TextStyle(
           color: isSelected ? primaryColor : Colors.grey[600],
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -253,13 +249,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
         color: isDark ? kSurfaceColorDark : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: isDark ? Colors.grey[800]! : Colors.grey[200]!),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
       ),
       child: Row(
         children: [

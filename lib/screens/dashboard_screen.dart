@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state.dart';
-import '../models/friend.dart';
 import '../utils/constants.dart';
 import '../widgets/stats_card.dart';
+import '../widgets/fade_in_slide.dart'; // Import the animation
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -39,38 +39,50 @@ class DashboardScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    StatsCard(
-                      title: 'Total Collected Today',
-                      value: appState.formatCurrency(appState.totalCollectedToday),
-                      subtitle: appState.formatDate(DateTime.now()),
+                    // Animate Stats Cards
+                    FadeInSlide(
+                      index: 0,
+                      child: StatsCard(
+                        title: 'Total Collected Today',
+                        value: appState.formatCurrency(appState.totalCollectedToday),
+                        subtitle: appState.formatDate(DateTime.now()),
+                      ),
                     ),
                     const SizedBox(height: kPaddingMedium),
-                    StatsCard(
-                      title: 'Total Collected This Week',
-                      value: appState.formatCurrency(appState.totalCollectedWeek),
-                      subtitle: _getWeekRange(context),
+                    FadeInSlide(
+                      index: 1,
+                      child: StatsCard(
+                        title: 'Total Collected This Week',
+                        value: appState.formatCurrency(appState.totalCollectedWeek),
+                        subtitle: _getWeekRange(context),
+                      ),
                     ),
                     const SizedBox(height: kPaddingLarge),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(kPaddingMedium),
-                      decoration: BoxDecoration(
-                        color: containerColor,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            'Unpaid Today',
-                            style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: primaryColor,
+                    
+                    // Unpaid Container
+                    FadeInSlide(
+                      index: 2,
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(kPaddingMedium),
+                        decoration: BoxDecoration(
+                          color: containerColor,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              'Unpaid Today',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: primaryColor,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: kPaddingMedium),
-                          _buildUnpaidList(context, appState),
-                        ],
+                            const SizedBox(height: kPaddingMedium),
+                            _buildUnpaidList(context, appState),
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(height: 100),
@@ -106,7 +118,10 @@ class DashboardScreen extends StatelessWidget {
       separatorBuilder: (context, index) => const SizedBox(height: kPaddingSmall),
       itemBuilder: (context, index) {
         final friend = unpaidFriends[index];
-        return Container(
+        // Animate individual list items
+        return FadeInSlide(
+          index: index + 3, // Start index after the main cards
+          child: Container(
             padding: const EdgeInsets.symmetric(horizontal: kPaddingMedium, vertical: kPaddingLarge),
             decoration: BoxDecoration(
               color: listItemColor,
@@ -119,13 +134,13 @@ class DashboardScreen extends StatelessWidget {
                 Text(appState.formatCurrency(friend.totalBalance), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textColor)),
               ],
             ),
-          );
+          ),
+        );
       },
     );
   }
 
   String _getWeekRange(BuildContext context) {
-    // ... same as before
     final now = DateTime.now();
     final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
     final endOfWeek = startOfWeek.add(const Duration(days: 6));

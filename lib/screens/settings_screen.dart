@@ -12,13 +12,11 @@ import '../widgets/custom_text_field.dart';
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    final appState = context.watch<AppState>();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = Theme.of(context).colorScheme.primary;
-    final surfaceColor = Theme.of(context).cardTheme.color;
-    final textColor = Theme.of(context).textTheme.bodyMedium?.color;
+    @override
+      Widget build(BuildContext context) {
+        final appState = context.watch<AppState>();
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        final primaryColor = Theme.of(context).colorScheme.primary;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
@@ -46,21 +44,21 @@ class SettingsScreen extends StatelessWidget {
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: primaryColor),
               ),
               const SizedBox(height: kPaddingMedium),
-              Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: isDark ? Colors.grey[700]! : Colors.grey[300]!),
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                child: Row(
-                  children: [
-                    _buildThemeSegment(context, 'Light', 0, appState.themeMode),
-                    Container(width: 1, height: 40, color: isDark ? Colors.grey[700] : Colors.grey[300]),
-                    _buildThemeSegment(context, 'System', 1, appState.themeMode),
-                    Container(width: 1, height: 40, color: isDark ? Colors.grey[700] : Colors.grey[300]),
-                    _buildThemeSegment(context, 'Dark', 2, appState.themeMode),
-                  ],
-                ),
-              ),
+                Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: isDark ? Colors.grey[700]! : Colors.grey[300]!),
+                                  borderRadius: BorderRadius.circular(30),
+                                ),
+                                child: Row(
+                                  children: [
+                                    _buildThemeSegment(context, 'Light', 0, appState.themeMode),
+                                    Container(width: 1, height: 40, color: isDark ? Colors.grey[700] : Colors.grey[300]),
+                                    _buildThemeSegment(context, 'System', 1, appState.themeMode),
+                                    Container(width: 1, height: 40, color: isDark ? Colors.grey[700] : Colors.grey[300]),
+                                    _buildThemeSegment(context, 'Dark', 2, appState.themeMode),
+                                  ],
+                                ),
+                              ),
               const SizedBox(height: kPaddingLarge),
 
               // Notifications
@@ -203,7 +201,7 @@ class SettingsScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             // REVERTED: withValues -> withOpacity
-            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 4),
+            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4),
           ],
         ),
         child: Row(
@@ -223,14 +221,15 @@ class SettingsScreen extends StatelessWidget {
               ),
             ),
             Switch(
-              value: notification.isActive,
-              onChanged: (val) {
-                appState.updateNotification(notification.copyWith(isActive: val));
-              },
-              activeColor: Colors.white,
-              activeTrackColor: primaryColor,
-            ),
-          ],
+                          value: notification.isActive,
+                          onChanged: (val) {
+                            appState.updateNotification(notification.copyWith(isActive: val));
+                          },
+                          // FIXED: activeThumbColor
+                          activeThumbColor: Colors.white,
+                          activeTrackColor: primaryColor,
+                        ),
+                      ],
         ),
       ),
     );

@@ -83,7 +83,7 @@ class DatabaseHelper {
     }
   }
 
-  Future<void> _seedInitialData(Database db) async {
+Future<void> _seedInitialData(Database db) async {
     // Insert dummy friends
     final vince = await db.insert(kTableFriends, {
       'name': 'Vince',
@@ -93,7 +93,8 @@ class DatabaseHelper {
       'isActive': 1,
     });
 
-    final josh = await db.insert(kTableFriends, {
+    // FIXED: Removed unused variable assignment
+    await db.insert(kTableFriends, {
       'name': 'Josh',
       'notes': 'Coworker',
       'totalBalance': 500.0,
@@ -101,7 +102,8 @@ class DatabaseHelper {
       'isActive': 1,
     });
 
-    final sarah = await db.insert(kTableFriends, {
+    // FIXED: Removed unused variable assignment
+    await db.insert(kTableFriends, {
       'name': 'Sarah',
       'notes': 'Friend from college',
       'totalBalance': 300.0,
