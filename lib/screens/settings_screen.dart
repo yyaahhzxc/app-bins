@@ -226,7 +226,7 @@ class SettingsScreen extends StatelessWidget {
                 appState.updateNotification(notification.copyWith(isActive: val));
               },
               // REVERTED: activeThumbColor -> activeColor
-              activeColor: Colors.white,
+              activeThumbColor: Colors.white,
               activeTrackColor: primaryColor,
             ),
           ],
@@ -305,7 +305,7 @@ class SettingsScreen extends StatelessWidget {
                             value: isActive,
                             onChanged: (val) => setState(() => isActive = val),
                             // REVERTED: activeThumbColor -> activeColor
-                            activeColor: Colors.white,
+                            activeThumbColor: Colors.white,
                             activeTrackColor: primaryColor,
                           ),
                         ],

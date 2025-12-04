@@ -178,7 +178,7 @@ class _PersonInfoModalState extends State<PersonInfoModal> {
 
           Expanded(
             child: transactions.isEmpty 
-            ? Center(child: Text("No transactions yet", style: TextStyle(color: Colors.grey[400])))
+            ? Center(child: Text('No transactions yet', style: TextStyle(color: Colors.grey[400])))
             : ListView.separated(
               padding: const EdgeInsets.all(kPaddingLarge),
               itemCount: transactions.length,
@@ -280,7 +280,7 @@ class _PersonInfoModalState extends State<PersonInfoModal> {
                   value: _isActive,
                   onChanged: (val) => setState(() => _isActive = val),
                   // REVERTED: activeThumbColor -> activeColor
-                  activeColor: Colors.white,
+                  activeThumbColor: Colors.white,
                   activeTrackColor: kPrimaryColor,
                 ),
               ],
